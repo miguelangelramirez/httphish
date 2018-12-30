@@ -160,7 +160,7 @@ def launch_server(port, http):
         # Wrap the socket with SSL for HTTPS
         cert_path = os.path.join(CURRENT_PATH, "localhost.crt")
         key_path = os.path.join(CURRENT_PATH, "localhost.key")
-        httpd.socket = ssl.SSLContext.wrap_socket(httpd.socket, server_side=True, certfile=cert_path, keyfile=key_path)
+        httpd.socket = ssl.wrap_socket(httpd.socket, server_side=True, certfile=cert_path, keyfile=key_path)
         try:
             print("[*] Serving HTTPS at port {}.".format(port))
             print("\n[*] Use CTRL+C to exit and close the HTTP server.")
