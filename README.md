@@ -8,6 +8,8 @@
                |_|                       |_|    |___/  
 ```
 
+Currently a work in progress! Works on simple websites but seems to have issues with more complex ones and with lazy loading...
+
 Quickly clone a website and launch an HTTP server to phish information with httphish.py 🐍
 
 ## Prerequisites
