@@ -18,7 +18,7 @@ Currently, it only works on simple pages with `<form>` logins. It might work on 
 
 This script currently requires the `wget` command to download websites, so this feature only works on Linux. I will probably eventually add OS detection and use Invoke-WebRequest from PowerShell on Windows, but for now, please download websites manually.
 
-## Usage
+## How to use
 
 Clone this git repository to download the necessary files and run the script:
 ```Shell
@@ -41,13 +41,17 @@ When you are done, simple run *cleanup.py* to delete the `/web` folder and the `
 
 Some websites might not work if you automatically download them but might work if you manually save them.
 
-Some lazy-loaded content simply don't work.
+Some websites won't respond to requests directed to their IP, so try entering the domain instead. 
+
+Some lazy-loaded content simply doesn't work.
 
 If a website doesn't work, use inspect element and look under the network tab. The issue is probably some dynamic requests being broken because the site is too complex. In some cases, this can be fixed by changing the IP/domain to redirect 404 requests to. In most cases, you would have to manually modify the files and choose to not automatically download the file.
 
-## Examples
+## Website examples
 
 ### Working websites
+
+Working websites will generally have very simple login forms and not much dynamically loaded content. Here are some I tested.
 
 * [http://www.github.com/login](http://www.github.com/login)
 * [http://www.linkedin.com/](http://www.linkedin.com/)
@@ -56,7 +60,7 @@ If a website doesn't work, use inspect element and look under the network tab. T
 
 ### Broken websites
 
-For most broken websites, dynamically loaded content will be the issue.
+For most broken websites, dynamically loaded content will be the issue. Here's some websites I found did not work.
 
 * [http://instagram.com/accounts/login](http://instagram.com/accounts/login)
 * [http://www.messenger.com/login](http://www.messenger.com/login)
