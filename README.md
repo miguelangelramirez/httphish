@@ -29,23 +29,34 @@ sudo python3 httphish.py
 
 It will then ask you for the following information : 
 
-* Whether you want to download the webpage with `wget` or if you have manually saved it to the `/web` folder. If you use `wget` it will also ask you :
-    * The full URL to download (ex: `http://www.github.com/login`)
-    * The IP/domain to redirect 404 requests to (ex: `www.github.com`)
+* Whether you want to download the webpage with `wget` or if you have manually saved it to the `/web` folder. 
+    * If you use `wget` it will also ask you :
+        * The full URL to download (ex: `http://www.github.com/login`)
+        * Whether to use the default user agent for wget or enter a custom one. (You can see the default one in the code)
+    * If you want to manually download it, simply create a folder named `web` next to the script and save index.html in it.
+* The IP/domain to redirect all GET/POST requests to. If any files cannot be served statically, it will HTTP forward the request there. (ex: `www.github.com`)
+
+The `<form>` tags in index.html will then be modified to redirect requests to localhost.
 
 You will then be prompted to press Enter to launch the HTTP server.
 
-When you are done, simple run *cleanup.py* to delete the `/web` folder and the `post.txt` file. You will need to run this before running *httphish.py* again.
+Browse to your own IP address (or localhost) and you will see a cloned version of the website.
+
+Received POST and GET requests will be displayed, and POST requests coming from forms in index.html will be saved to `post.txt`. After running `httphish.py`, simply run the following command to see them : `cat post.txt`
+
+When you are done, press CTRL+C to close the HTTP server and end the script. Before running it again, simply run *cleanup.py* to delete the `/web` folder and the `post.txt` file.
 
 ## Troubleshooting
 
-Some websites might not work if you automatically download them but might work if you manually save them.
+* Some websites that do not work when you automatically download them might work if you manually save them.
 
-Some websites won't respond to requests directed to their IP, so try entering the domain instead. 
+* Some websites won't respond to requests directed to their IP, so try entering the domain instead (or vice-versa). 
 
-Some lazy-loaded content simply doesn't work.
+* Some lazy-loaded content simply doesn't work.
 
-If a website doesn't work, use inspect element and look under the network tab. The issue is probably some dynamic requests being broken because the site is too complex. In some cases, this can be fixed by changing the IP/domain to redirect 404 requests to. In most cases, you would have to manually modify the files and choose to not automatically download the file.
+* If a website doesn't work, use inspect element and look under the network tab. The issue is probably some dynamic requests being broken because the site is too complex. 
+    * In some cases, this can be fixed by changing the IP/domain to redirect GET/POST requests to. 
+    * In most cases, you would have to manually modify the files and choose to not automatically download the file.
 
 ## Website examples
 
