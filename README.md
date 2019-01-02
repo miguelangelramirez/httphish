@@ -69,11 +69,17 @@ Working websites will generally have very simple login forms and not much dynami
 * [http://www.facebook.com](http://www.facebook.com)
 * [http://old.reddit.com/login](http://old.reddit.com/login)
 
+### Partially working websites
+
+These sites will work, but some content might not get loaded.
+
+* [http://www.stackoverflow.com/users/login](http://www.stackoverflow.com/users/login)
+
 ### Broken websites
 
 For most broken websites, dynamically loaded content will be the issue. Here's some websites I found did not work.
 
-* [http://instagram.com/accounts/login](http://instagram.com/accounts/login)
+* [http://www.instagram.com/accounts/login](http://www.instagram.com/accounts/login)
 * [http://www.messenger.com/login](http://www.messenger.com/login)
 * [http://www.reddit.com/login](http://www.reddit.com/login)
 
