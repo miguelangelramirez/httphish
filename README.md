@@ -1,12 +1,5 @@
 # httphish
-```
-  _     _   _         _     _     _                    /)
- | |__ | |_| |_ _ __ | |__ (_)___| |__    _ __  _   _ / |
- | '_ \| __| __| '_ \| '_ \| / __| '_ \  | '_ \| | | |  |
- | | | | |_| |_| |_) | | | | \__ \ | | |_| |_) | |_| | /*\ 
- |_| |_|\__|\__| .__/|_| |_|_|___/_| |_(_) .__/ \__, | \(/ 
-               |_|                       |_|    |___/  /_\     
-```
+![carbon 1](https://user-images.githubusercontent.com/45467550/50672479-58c7fd00-0fa6-11e9-85ce-8d29f1d72efc.png)
 
 Quickly clone a website and launch an HTTP server to phish information with httphish.py 🐍
 
