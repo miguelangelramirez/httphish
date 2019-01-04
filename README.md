@@ -10,13 +10,9 @@
 
 Quickly clone a website and launch an HTTP server to phish information with httphish.py 🐍
 
-Only one Python 3 script with no dependencies! Simply run the script, it will automatically download a web page, host it on a local HTTP server and save all POST data sent by visitors.
+Only one Python 3 script with no dependencies! Simply run the script, it will automatically download a web page, host it on a local HTTP server and save all POST data sent by visitors (such as login credentials).
 
-Currently, it only works on simple pages with `<form>` logins. It might work on some dynamically loaded pages if they aren't too complex. Please see at the bottom of this README for examples of public websites that work and don't work.
-
-## Prerequisites
-
-This script currently requires the `wget` command to download websites, so this feature only works on Linux. I will probably eventually add OS detection and use Invoke-WebRequest from PowerShell on Windows, but for now, please download websites manually.
+Currently, it only works on simple pages with `<form>` logins. It might work on some dynamically loaded pages if they aren't too complex. Please see at the bottom of this README for examples of public websites that work and don't work. Also, the `wget` command is currently required to download websites, so this feature only works on Linux. I will probably eventually add OS detection and use Invoke-WebRequest from PowerShell on Windows, but for now, please download websites manually. (Pull requests are welcome!)
 
 ## How to use
 
@@ -44,7 +40,19 @@ Browse to your own IP address (or localhost) and you will see a cloned version o
 
 Received POST and GET requests will be displayed, and POST requests coming from forms in index.html will be saved to `post.txt`. After running `httphish.py`, simply run the following command to see them : `cat post.txt`
 
-When you are done, press CTRL+C to close the HTTP server and end the script. Before running it again, simply run *cleanup.py* to delete the `/web` folder and the `post.txt` file.
+When you are done, press CTRL+C to close the HTTP server and end the script. 
+
+Before running it again, simply run *cleanup.py* to delete the `/web` folder and the `post.txt` file :
+```Shell
+sudo python3 cleanup.py
+```
+
+## Use case
+
+This script serves as a tool for pentesters to phish credentials for certain websites. Such a server is simple enough to be hosted from any device capable of running python. For example, you could have a Raspberry Pi on the local network, controlled remotely by you, which copies an internal company website and hosts the clone. Internal corporate websites are generally simple enough to be cloned; this means phishing attemps by e-mail links or even DNS/ARP poisoning can generate system credentials, maybe even AD credentials. 
+
+What system administrators can take away from this, is how technically simple convincing phishing attacks can be. Thankfully, a combination of security measures should be able to stop these attacks. Aside from the usual e-mail filters and dns/arp poisoning preventions, system administrators can train users to recognize phishing e-mails and phishing websites. Common network security measures should be able to mitigate this.
+
 
 ## Troubleshooting
 
