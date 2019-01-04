@@ -1,7 +1,7 @@
 # httphish
-![carbon 1](https://user-images.githubusercontent.com/45467550/50672479-58c7fd00-0fa6-11e9-85ce-8d29f1d72efc.png)
-
 Quickly clone a website and launch an HTTP server to phish information with httphish.py 🐍
+
+<p align="center"><img src="https://user-images.githubusercontent.com/45467550/50672479-58c7fd00-0fa6-11e9-85ce-8d29f1d72efc.png" width=800></p>
 
 Only one Python 3 script with no dependencies! Simply run the script, it will automatically download a web page, host it on a local HTTP server and save all POST data sent by visitors (such as login credentials).
 
